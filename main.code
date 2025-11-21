@@ -1,0 +1,54 @@
+import requests
+from dotenv import load_dotenv
+import os
+import gradio as gr
+
+load_dotenv()
+key = os.getenv("API_KEY")
+
+def get_weather(city):
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    params = {"q": city, "appid": key, "units": "metric"}
+    resp = requests.get(url, params=params)
+    data = resp.json()
+    temp = data.get("main", {}).get("temp")
+    desc = data.get("weather", [{}])[0].get("description")
+    feels = data.get("main", {}).get("feels_like")
+    return f"{desc}, heat: {temp}°C, : {feels}°C"
+
+
+css="""
+.gradio-container, .gradio-block {
+    background-image: url("https://images.unsplash.com/photo-1501973801540-537f08ccae7b?auto=format&fit=crop&w=1600&q=80");
+    background-size: cover !important;
+    
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;,
+
+    color: #ffffff;
+}
+"""
+
+
+with gr.Blocks(title ="Cloudzilla" ,theme=gr.themes.Ocean(), css=css) as demo:
+    gr.Markdown(
+        """
+        <div style="text-align: center;">
+            <h1> Freeze'em all</h1>
+            <p>Quick weather, anytime, anywhere.</p>
+        </div>
+        """
+    )
+    
+    with gr.Row():
+        with gr.Column(scale=1):
+            input = gr.Textbox(label="Enter the city name")
+            qbutton = gr.Button("Get Weather")
+            
+        with gr.Column(scale=2):
+            output = gr.Textbox(label="", lines=3)
+    qbutton.click(get_weather, inputs=input, outputs=output)
+
+demo.launch(share=True)
+
